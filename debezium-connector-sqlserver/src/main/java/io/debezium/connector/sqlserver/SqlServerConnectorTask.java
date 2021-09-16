@@ -6,6 +6,7 @@
 package io.debezium.connector.sqlserver;
 
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,7 @@ public class SqlServerConnectorTask extends BaseSourceTask<SqlServerOffsetContex
         final TopicSelector<TableId> topicSelector = SqlServerTopicSelector.defaultSelector(connectorConfig);
         final SchemaNameAdjuster schemaNameAdjuster = SchemaNameAdjuster.create();
         final SqlServerValueConverters valueConverters = new SqlServerValueConverters(connectorConfig.getDecimalMode(),
-                connectorConfig.getTemporalPrecisionMode(), connectorConfig.binaryHandlingMode());
+                connectorConfig.getTemporalPrecisionMode(), connectorConfig.binaryHandlingMode(), ZoneId.of(connectorConfig.getDbTimeZoneName()));
 
         // By default do not load whole result sets into memory
         config = config.edit()

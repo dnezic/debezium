@@ -31,3 +31,5 @@ generated-sources/
 bin/
 gen/
 *.tokens
+
+pom.xml.versionsBackup

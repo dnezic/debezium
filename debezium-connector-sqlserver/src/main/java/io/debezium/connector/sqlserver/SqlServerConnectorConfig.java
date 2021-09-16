@@ -40,6 +40,7 @@ public class SqlServerConnectorConfig extends HistorizedRelationalDatabaseConnec
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlServerConnectorConfig.class);
 
     public static final String SOURCE_TIMESTAMP_MODE_CONFIG_NAME = "source.timestamp.mode";
+    public static final String DB_TIMEZONE_NAME = "db.timezone";
     public static final String MAX_TRANSACTIONS_PER_ITERATION_CONFIG_NAME = "max.iteration.transactions";
     protected static final int DEFAULT_PORT = 1433;
     protected static final int DEFAULT_MAX_TRANSACTIONS_PER_ITERATION = 0;
@@ -273,6 +274,13 @@ public class SqlServerConnectorConfig extends HistorizedRelationalDatabaseConnec
                     "'" + SourceTimestampMode.PROCESSING.getValue()
                     + "', (deprecated) the source timestamp is set to the instant where the record was processed by Debezium.");
 
+    public static final Field DB_TIMEZONE = Field.create(DB_TIMEZONE_NAME)
+            .withDisplayName("Database default timezone")
+            .withType(Type.STRING)
+            .withWidth(Width.SHORT)
+            .withImportance(Importance.LOW)
+            .withDescription("Java Timezone of source db, e.g. Europe/Zagreb");
+
     public static final Field SNAPSHOT_MODE = Field.create("snapshot.mode")
             .withDisplayName("Snapshot mode")
             .withEnum(SnapshotMode.class, SnapshotMode.INITIAL)
@@ -315,6 +323,7 @@ public class SqlServerConnectorConfig extends HistorizedRelationalDatabaseConnec
                     SNAPSHOT_MODE,
                     SNAPSHOT_ISOLATION_MODE,
                     SOURCE_TIMESTAMP_MODE,
+                    DB_TIMEZONE,
                     MAX_TRANSACTIONS_PER_ITERATION,
                     BINARY_HANDLING_MODE)
             .excluding(
@@ -338,6 +347,7 @@ public class SqlServerConnectorConfig extends HistorizedRelationalDatabaseConnec
     private final SnapshotMode snapshotMode;
     private final SnapshotIsolationMode snapshotIsolationMode;
     private final SourceTimestampMode sourceTimestampMode;
+    private final String dbTimeZoneName;
     private final boolean readOnlyDatabaseConnection;
     private final int maxTransactionsPerIteration;
 
@@ -359,6 +369,7 @@ public class SqlServerConnectorConfig extends HistorizedRelationalDatabaseConnec
         }
 
         this.sourceTimestampMode = SourceTimestampMode.fromMode(config.getString(SOURCE_TIMESTAMP_MODE_CONFIG_NAME));
+        this.dbTimeZoneName = config.getString(DB_TIMEZONE_NAME);
         this.maxTransactionsPerIteration = config.getInteger(MAX_TRANSACTIONS_PER_ITERATION);
 
         if (!config.getBoolean(MAX_LSN_OPTIMIZATION)) {
@@ -388,6 +399,15 @@ public class SqlServerConnectorConfig extends HistorizedRelationalDatabaseConnec
 
     public SourceTimestampMode getSourceTimestampMode() {
         return sourceTimestampMode;
+    }
+
+    public String getDbTimeZoneName() {
+        if (dbTimeZoneName == null) {
+            return "UTC";
+        }
+        else {
+            return dbTimeZoneName;
+        }
     }
 
     public boolean isReadOnlyDatabaseConnection() {
